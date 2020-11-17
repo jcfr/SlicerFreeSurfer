@@ -34,128 +34,137 @@ vtkStandardNewMacro(vtkSlicerFreeSurferDijkstraGraphGeodesicPath);
 //------------------------------------------------------------------------------
 vtkSlicerFreeSurferDijkstraGraphGeodesicPath::vtkSlicerFreeSurferDijkstraGraphGeodesicPath()
 {
-  this->DistanceEnabled   = true;
-  this->CurvEnabled   = false;
-  this->SulcEnabled   = false;
-  this->DistanceCurvEnabled  = false;
-  this->DistanceSulcEnabled  = false;
-  this->CurvSulcEnabled  = false;
-  this->DistanceCurvSulcEnabled = false;
-  this->DirectionEnabled   = false;
-  this->AntiGreedyThreshold = 5.0;
+  this->DistanceWeight = 1.0;
+  this->CurvatureWeight = 1.0;
+  this->SulcalHeightWeight = 1.0;
+  this->DistanceCurvatureWeight = 1.0;
+  this->DistanceSulcalHeightWeight = 1.0;
+  this->CurvatureSulcalHeightWeight = 1.0;
+  this->DistanceCurvatureSulcalHeightWeight = 1.0;
+  this->DirectionWeight = 1.0;
+
+  this->CurvaturePenalty = 10.0;
+  this->SulcalHeightPenalty = 10.0;
+  this->DistanceCurvaturePenalty = 10.0;
+  this->DistanceSulcalHeightPenalty = 10.0;
+  this->CurvatureSulcalHeightPenalty = 10.0;
+  this->DistanceCurvatureSulcalHeightPenalty = 1.0;
 }
 
 //------------------------------------------------------------------------------
 vtkSlicerFreeSurferDijkstraGraphGeodesicPath::~vtkSlicerFreeSurferDijkstraGraphGeodesicPath() = default;
 
 //------------------------------------------------------------------------------
-void vtkSlicerFreeSurferDijkstraGraphGeodesicPath::PrintSelf(std::ostream &os, vtkIndent indent)
+void vtkSlicerFreeSurferDijkstraGraphGeodesicPath::PrintSelf(std::ostream & os, vtkIndent indent)
 {
   Superclass::PrintSelf(os, indent);
 }
 
 //------------------------------------------------------------------------------
 double vtkSlicerFreeSurferDijkstraGraphGeodesicPath::CalculateStaticEdgeCost(
-  vtkDataSet* inData, vtkIdType u, vtkIdType v)
+  vtkDataSet * inData, vtkIdType u, vtkIdType v)
 {
   return 0.0;
-  //double p1[3];
-  //inData->GetPoint(u, p1);
-  //double p2[3];
-  //inData->GetPoint(v, p2);
-  //double w = sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
 }
 
 //------------------------------------------------------------------------------
 double vtkSlicerFreeSurferDijkstraGraphGeodesicPath::CalculateDynamicEdgeCost(
-  vtkDataSet* inData, vtkIdType u, vtkIdType v)
+  vtkDataSet * inData, vtkIdType u, vtkIdType v)
 {
+  /// Based on the FreeSurfer implementation found here:
+  /// https://github.com/freesurfer/freesurfer/blob/4db941ef298c0ac5fb78c29fd0e95571ac363e16/mris_pmake/env.cpp#L2017
+
   if (!inData)
-    {
+  {
     return 0.0;
-    }
+  }
 
-  double p1[3];
-  inData->GetPoint(u, p1);
-  double p2[3];
-  inData->GetPoint(v, p2);
+  double currentPoint[3];
+  inData->GetPoint(u, currentPoint);
+  double neighbourPoint[3];
+  inData->GetPoint(v, neighbourPoint);
 
-  double weight = 0.0;
+  double distance = sqrt(vtkMath::Distance2BetweenPoints(currentPoint, neighbourPoint)); //wd
 
-  double distance = sqrt(vtkMath::Distance2BetweenPoints(p1, p2)); // d
-  double curv = 0.0;
-  double sulc = 0.0;
+  double curvature = 0.0;
+  float curvatureRange[2] = { 0.0, 0.0 };
 
+  double sulcalHeight = 0.0;
+  float sulcalHeightRange[2] = { 0.0, 0.0 };
 
-  double antiGreedyWeightFactor = 1.0;;
+  double antiGreedyWeightFactor = 1.0;
 
   vtkPointData* pointData = inData->GetPointData();
   if (pointData)
   {
-    vtkDoubleArray* curvArray = vtkDoubleArray::SafeDownCast(pointData->GetArray("curv"));
+    vtkFloatArray* curvArray = vtkFloatArray::SafeDownCast(pointData->GetArray("curv"));
     if (curvArray)
     {
-      curv = curvArray->GetValue(v);
-      if (curv >= 0)
-        {
-        antiGreedyWeightFactor = 10.0;
-        }
-      curv = curvArray->GetValueRange()[0] - curv;
+      curvArray->GetValueRange(curvatureRange);
+      curvature = curvArray->GetValue(v);
     }
-    vtkDoubleArray* sulcArray = vtkDoubleArray::SafeDownCast(pointData->GetArray("sulc"));
+
+    vtkFloatArray* sulcArray = vtkFloatArray::SafeDownCast(pointData->GetArray("sulc"));
     if (sulcArray)
     {
-      sulc = sulcArray->GetValue(v);
+      sulcArray->GetValueRange(sulcalHeightRange);
+      sulcalHeight = sulcArray->GetValue(v);
     }
   }
 
-  if (this->DistanceEnabled)
+  double edgeDirection[3] = { 0.0 };
+  vtkMath::Subtract(neighbourPoint, currentPoint, edgeDirection);
+  vtkMath::Normalize(edgeDirection);
+
+  double endVertex[3] = { 0.0 };
+  inData->GetPoint(this->EndVertex, endVertex);
+
+  double directionToEnd[3] = { 0.0 };
+  vtkMath::Subtract(endVertex, currentPoint, directionToEnd);
+  vtkMath::Normalize(directionToEnd);
+
+  double direction = 1.0 - vtkMath::Dot(edgeDirection, directionToEnd);
+
+  double distanceWeight = this->DistanceWeight;
+  double curvatureWeight = this->CurvatureWeight;
+  double sulcalHeightWeight = this->SulcalHeightWeight;
+  double distanceCurvatureWeight = this->DistanceCurvatureWeight;
+  double distanceSulcalHeightWeight = this->DistanceSulcalHeightWeight;
+  double curvatureSulcalHeightWeight = this->CurvatureSulcalHeightWeight;
+  double distanceCurvatureSulcalHeightWeight = this->DistanceCurvatureSulcalHeightWeight;
+  double directionWeight = this->DirectionWeight;
+
+  if (curvature < 0)
   {
-    weight += distance;
+    curvatureWeight *= this ->CurvaturePenalty;
+    distanceCurvatureWeight *= this->DistanceCurvaturePenalty;
+    curvatureSulcalHeightWeight *= this->CurvatureSulcalHeightPenalty;
+    distanceCurvatureSulcalHeightWeight *= this->DistanceCurvatureSulcalHeightPenalty;
   }
 
-  if (this->CurvEnabled)
+  if (sulcalHeight < 0)
   {
-    weight += curv * antiGreedyWeightFactor;
+    sulcalHeightWeight *= this->SulcalHeightPenalty;
+    distanceSulcalHeightWeight *= this->DistanceSulcalHeightPenalty;
+    curvatureSulcalHeightWeight *= this->CurvatureSulcalHeightPenalty;
+    distanceCurvatureSulcalHeightWeight *= this->DistanceCurvatureSulcalHeightPenalty;
   }
 
-  if (this->SulcEnabled)
-  {
-    weight += sulc * antiGreedyWeightFactor;
-  }
+  // Set curvature and sulcal height to strictly positive ranges
+  curvature = curvatureRange[1] - curvature;
+  sulcalHeight = sulcalHeightRange[1] - sulcalHeight;
 
-  if (this->DistanceSulcEnabled)
-  {
-    weight += distance * sulc * antiGreedyWeightFactor;
-  }
+  double cost = 0.0;
+  cost += distanceWeight * distance;
+  cost += curvatureWeight * curvature;
+  cost += sulcalHeightWeight * sulcalHeight;
+  cost += distanceSulcalHeightWeight * distance * sulcalHeight;
+  cost += distanceCurvatureWeight * distance * curvature;
+  cost += curvatureSulcalHeightWeight * curvature * sulcalHeight;
+  cost += distanceCurvatureSulcalHeightWeight * distance * curvature * sulcalHeight;
+  cost += directionWeight * direction;
 
-  if (this->DistanceCurvEnabled)
-  {
-    weight += distance * curv * antiGreedyWeightFactor;
-  }
-
-  if (this->DistanceCurvSulcEnabled)
-  {
-    weight += distance * curv * sulc;
-  }
-
-  if (this->DirectionEnabled)
-  {
-    double endVertex[3] = { 0.0 };
-    inData->GetPoint(this->EndVertex, endVertex);
-
-    double edgeDirection[3] = { 0.0 };
-    vtkMath::Subtract(p2, p1, edgeDirection);
-    vtkMath::Normalize(edgeDirection);
-
-    double directionToEnd[3] = { 0.0 };
-    vtkMath::Subtract(p2, p1, directionToEnd);
-    vtkMath::Normalize(directionToEnd);
-
-    weight += 1.0 - vtkMath::Dot(edgeDirection, directionToEnd);
-  }
-
-  return weight;
+  return cost;
 }
 
 

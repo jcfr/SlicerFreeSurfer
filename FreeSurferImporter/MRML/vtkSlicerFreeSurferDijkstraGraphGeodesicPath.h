@@ -35,6 +35,85 @@ public:
   static vtkSlicerFreeSurferDijkstraGraphGeodesicPath* New();
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
+  /// The weighting applied to the cost function distance component
+  /// wd from FreeSurfer
+  /// \sa CalculateDynamicEdgeCost()
+  vtkSetMacro(DistanceWeight, double);
+  vtkGetMacro(DistanceWeight, double);
+
+  /// The weighting applied to the cost function curvature component
+  /// wc from FreeSurfer
+  /// \sa CalculateDynamicEdgeCost()
+  vtkSetMacro(CurvatureWeight, double);
+  vtkGetMacro(CurvatureWeight, double);
+
+  /// The weighting applied to the cost function sulcal height component
+  /// wh from FreeSurfer
+  /// \sa CalculateDynamicEdgeCost()
+  vtkSetMacro(SulcalHeightWeight, double);
+  vtkGetMacro(SulcalHeightWeight, double);
+
+  /// The weighting applied to the cost function distance*curvature component
+  /// wdc from FreeSurfer
+  /// \sa CalculateDynamicEdgeCost()
+  vtkSetMacro(DistanceCurvatureWeight, double);
+  vtkGetMacro(DistanceCurvatureWeight, double);
+
+  /// The weighting applied to the cost function distance*sulcal height component
+  /// wdh from FreeSurfer
+  /// \sa CalculateDynamicEdgeCost()
+  vtkSetMacro(DistanceSulcalHeightWeight, double);
+  vtkGetMacro(DistanceSulcalHeightWeight, double);
+
+  /// The weighting applied to the cost function curvature*sulcal height component
+  /// wch from FreeSurfer
+  /// \sa CalculateDynamicEdgeCost()
+  vtkSetMacro(CurvatureSulcalHeightWeight, double);
+  vtkGetMacro(CurvatureSulcalHeightWeight, double);
+
+  /// The weighting applied to the cost function distance*curvature*sulcal height component
+  /// wdch from FreeSurfer
+  /// \sa CalculateDynamicEdgeCost()
+  vtkSetMacro(DistanceCurvatureSulcalHeightWeight, double);
+  vtkGetMacro(DistanceCurvatureSulcalHeightWeight, double);
+
+  /// The weighting applied to the cost function direction component
+  /// wdir from FreeSurfer
+  /// \sa CalculateDynamicEdgeCost()
+  vtkSetMacro(DirectionWeight, double);
+  vtkGetMacro(DirectionWeight, double);
+
+  /// The penalty applied to the cost function curvature component
+  /// \sa CalculateDynamicEdgeCost()
+  vtkSetMacro(CurvaturePenalty, double);
+  vtkGetMacro(CurvaturePenalty, double);
+
+  /// The penalty applied to the cost function sulcal height component
+  /// \sa CalculateDynamicEdgeCost()
+  vtkSetMacro(SulcalHeightPenalty, double);
+  vtkGetMacro(SulcalHeightPenalty, double);
+
+  /// The penalty applied to the cost function distance*curvature component
+  /// \sa CalculateDynamicEdgeCost()
+  vtkSetMacro(DistanceCurvaturePenalty, double);
+  vtkGetMacro(DistanceCurvaturePenalty, double);
+
+  /// The penalty applied to the cost function distance*sulcal height component
+  /// \sa CalculateDynamicEdgeCost()
+  vtkSetMacro(DistanceSulcalHeightPenalty, double);
+  vtkGetMacro(DistanceSulcalHeightPenalty, double);
+
+  /// The penalty applied to the cost function curvature*sulcal height component
+  /// \sa CalculateDynamicEdgeCost()
+  vtkSetMacro(CurvatureSulcalHeightPenalty, double);
+  vtkGetMacro(CurvatureSulcalHeightPenalty, double);
+
+  /// The penalty applied to the cost function distance*curvature*sulcal height component
+  /// wdch from FreeSurfer
+  /// \sa CalculateDynamicEdgeCost()
+  vtkSetMacro(DistanceCurvatureSulcalHeightPenalty, double);
+  vtkGetMacro(DistanceCurvatureSulcalHeightPenalty, double);
+
 protected:
   /// The fixed cost going from vertex u to v.
   /// Reimplemented to provide additonal cost function types.
@@ -42,41 +121,9 @@ protected:
   double CalculateStaticEdgeCost(vtkDataSet* inData, vtkIdType u, vtkIdType v) override;
 
   /// The fixed cost going from vertex u to v.
-  /// Reimplemented to provide additonal cost function types.
-  /// \sa SetCostFunctionType()
+  /// Implements the FreeSurfer cost function found here:
+  /// https://github.com/freesurfer/freesurfer/blob/4db941ef298c0ac5fb78c29fd0e95571ac363e16/mris_pmake/env.cpp#L2017
   double CalculateDynamicEdgeCost(vtkDataSet* inData, vtkIdType u, vtkIdType v) override;
- 
-  vtkSetMacro(DistanceEnabled, bool);
-  vtkGetMacro(DistanceEnabled, bool);
-  vtkBooleanMacro(DistanceEnabled, bool);
-
-  vtkSetMacro(CurvEnabled, bool);
-  vtkGetMacro(CurvEnabled, bool);
-  vtkBooleanMacro(CurvEnabled, bool);
-
-  vtkSetMacro(SulcEnabled, bool);
-  vtkGetMacro(SulcEnabled, bool);
-  vtkBooleanMacro(SulcEnabled, bool);
-
-  vtkSetMacro(DistanceCurvEnabled, bool);
-  vtkGetMacro(DistanceCurvEnabled, bool);
-  vtkBooleanMacro(DistanceCurvEnabled, bool);
-
-  vtkSetMacro(DistanceSulcEnabled, bool);
-  vtkGetMacro(DistanceSulcEnabled, bool);
-  vtkBooleanMacro(DistanceSulcEnabled, bool);
-  
-  vtkSetMacro(CurvSulcEnabled, bool);
-  vtkGetMacro(CurvSulcEnabled, bool);
-  vtkBooleanMacro(CurvSulcEnabled, bool);
-
-  vtkSetMacro(DistanceCurvSulcEnabled, bool);
-  vtkGetMacro(DistanceCurvSulcEnabled, bool);
-  vtkBooleanMacro(DistanceCurvSulcEnabled, bool);
-
-  vtkSetMacro(DirectionEnabled, bool);
-  vtkGetMacro(DirectionEnabled, bool);
-  vtkBooleanMacro(DirectionEnabled, bool);
 
 protected:
   vtkSlicerFreeSurferDijkstraGraphGeodesicPath();
@@ -84,15 +131,21 @@ protected:
   vtkSlicerFreeSurferDijkstraGraphGeodesicPath(const vtkSlicerFreeSurferDijkstraGraphGeodesicPath&) = delete;
   void operator=(const vtkSlicerFreeSurferDijkstraGraphGeodesicPath&) = delete;
 
-  bool DistanceEnabled;
-  bool CurvEnabled;
-  bool SulcEnabled;
-  bool DistanceCurvEnabled;
-  bool DistanceSulcEnabled;
-  bool CurvSulcEnabled;
-  bool DistanceCurvSulcEnabled;
-  bool DirectionEnabled;
-  double AntiGreedyThreshold;
+  double DistanceWeight;
+  double CurvatureWeight;
+  double SulcalHeightWeight;
+  double DistanceCurvatureWeight;
+  double DistanceSulcalHeightWeight;
+  double CurvatureSulcalHeightWeight;
+  double DistanceCurvatureSulcalHeightWeight;
+  double DirectionWeight;
+
+  double CurvaturePenalty;
+  double SulcalHeightPenalty;
+  double DistanceCurvaturePenalty;
+  double DistanceSulcalHeightPenalty;
+  double CurvatureSulcalHeightPenalty;
+  double DistanceCurvatureSulcalHeightPenalty;
 };
 
 #endif
