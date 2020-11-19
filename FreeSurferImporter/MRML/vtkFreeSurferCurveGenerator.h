@@ -40,7 +40,44 @@ public:
 
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
-protected:
+  /// Creates an instance of the codec
+  vtkCurveGenerator* CreateInstance() override;
+
+  /// Read node attributes from a MRML XML file
+  void ReadXMLAttributes(const char** atts) override;
+
+  /// Write this class's information to a MRML file in XML format.
+  void WriteXML(ostream& of, int indent) override;
+
+  void SetDistanceWeight(double weight);
+  void SetCurvatureWeight(double weight);
+  void SetSulcalHeightWeight(double weight);
+  void SetDistanceCurvatureWeight(double weight);
+  void SetDistanceSulcalHeightWeight(double weight);
+  void SetCurvatureSulcalHeightWeight(double weight);
+  void SetDistanceCurvatureSulcalHeightWeight(double weight);
+  void SetDirectionWeight(double weight);
+  void SetCurvaturePenalty(double weight);
+  void SetSulcalHeightPenalty(double weight);
+  void SetDistanceCurvaturePenalty(double weight);
+  void SetDistanceSulcalHeightPenalty(double weight);
+  void SetCurvatureSulcalHeightPenalty(double weight);
+  void SetDistanceCurvatureSulcalHeightPenalty(double weight);
+
+  double GetDistanceWeight();
+  double GetCurvatureWeight();
+  double GetSulcalHeightWeight();
+  double GetDistanceCurvatureWeight();
+  double GetDistanceSulcalHeightWeight();
+  double GetCurvatureSulcalHeightWeight();
+  double GetDistanceCurvatureSulcalHeightWeight();
+  double GetDirectionWeight();
+  double GetCurvaturePenalty();
+  double GetSulcalHeightPenalty();
+  double GetDistanceCurvaturePenalty();
+  double GetDistanceSulcalHeightPenalty();
+  double GetCurvatureSulcalHeightPenalty();
+  double GetDistanceCurvatureSulcalHeightPenalty();
 
 protected:
   vtkFreeSurferCurveGenerator();

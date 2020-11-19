@@ -32,6 +32,7 @@
 
 // Markups includes
 #include <vtkCurveGenerator.h>
+#include <vtkCurveGeneratorFactory.h>
 #include <vtkMRMLMarkupsCurveNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
 
@@ -47,6 +48,7 @@
 #include <vtkAssignAttribute.h>
 #include <vtkDoubleArray.h>
 #include <vtkFloatArray.h>
+#include <vtkFreeSurferCurveGenerator.h>
 #include <vtkImageData.h>
 #include <vtkIntArray.h>
 #include <vtkMatrix4x4.h>
@@ -78,6 +80,7 @@ vtkStandardNewMacro(vtkSlicerFreeSurferImporterLogic);
 //----------------------------------------------------------------------------
 vtkSlicerFreeSurferImporterLogic::vtkSlicerFreeSurferImporterLogic()
 {
+  vtkCurveGeneratorFactory::GetInstance()->RegisterCurveGenerator(vtkNew<vtkFreeSurferCurveGenerator>());
 }
 
 //----------------------------------------------------------------------------
